@@ -348,6 +348,34 @@
                 box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
             }
 
+            select {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border: 2px solid var(--border);
+                border-radius: var(--radius-sm);
+                font-size: 1rem;
+                font-family: 'JetBrains Mono', monospace;
+                transition: all 0.2s ease;
+                background: var(--surface-elevated);
+                cursor: pointer;
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232563eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 1rem center;
+                padding-right: 3rem;
+            }
+
+            select:hover {
+                border-color: var(--primary-light);
+                background-color: var(--surface);
+            }
+
+            select:focus {
+                outline: none;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            }
+
             .checkbox-group {
                 display: flex;
                 align-items: center;
@@ -802,24 +830,50 @@
                 <div class="card-title">Synchronize Time</div>
 
                 <div class="form-group">
-                    <label for="zone">Time Zone Offset</label>
-                    <input
-                        type="number"
-                        id="zone"
-                        name="zone"
-                        min="-12"
-                        max="14"
-                        value="0" />
-                </div>
-
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <input
-                            type="checkbox"
-                            id="30minOffset"
-                            name="30minOffset" />
-                        <label for="30minOffset">Add 30 minute offset</label>
-                    </div>
+                    <label for="timezone">Time Zone</label>
+                    <select id="timezone" name="timezone">
+                        <option value="-12:00">UTC-12:00 (Baker Island)</option>
+                        <option value="-11:00">UTC-11:00 (American Samoa)</option>
+                        <option value="-10:00">UTC-10:00 (Hawaii)</option>
+                        <option value="-09:30">UTC-09:30 (Marquesas Islands)</option>
+                        <option value="-09:00">UTC-09:00 (Alaska)</option>
+                        <option value="-08:00">UTC-08:00 (Pacific Time)</option>
+                        <option value="-07:00">UTC-07:00 (Mountain Time)</option>
+                        <option value="-06:00">UTC-06:00 (Central Time)</option>
+                        <option value="-05:00">UTC-05:00 (Eastern Time)</option>
+                        <option value="-04:00">UTC-04:00 (Atlantic Time)</option>
+                        <option value="-03:30">UTC-03:30 (Newfoundland)</option>
+                        <option value="-03:00">UTC-03:00 (Brazil, Argentina)</option>
+                        <option value="-02:00">UTC-02:00 (South Georgia)</option>
+                        <option value="-01:00">UTC-01:00 (Azores)</option>
+                        <option value="+00:00" selected>UTC+00:00 (London, Lisbon)</option>
+                        <option value="+01:00">UTC+01:00 (Berlin, Paris, Rome)</option>
+                        <option value="+02:00">UTC+02:00 (Athens, Cairo, Helsinki)</option>
+                        <option value="+03:00">UTC+03:00 (Moscow, Istanbul)</option>
+                        <option value="+03:30">UTC+03:30 (Tehran)</option>
+                        <option value="+04:00">UTC+04:00 (Dubai, Baku)</option>
+                        <option value="+04:30">UTC+04:30 (Kabul)</option>
+                        <option value="+05:00">UTC+05:00 (Pakistan, Uzbekistan)</option>
+                        <option value="+05:30">UTC+05:30 (India, Sri Lanka)</option>
+                        <option value="+05:45">UTC+05:45 (Nepal)</option>
+                        <option value="+06:00">UTC+06:00 (Bangladesh, Kazakhstan)</option>
+                        <option value="+06:30">UTC+06:30 (Myanmar, Cocos Islands)</option>
+                        <option value="+07:00">UTC+07:00 (Bangkok, Jakarta)</option>
+                        <option value="+08:00">UTC+08:00 (China, Singapore, Perth)</option>
+                        <option value="+08:45">UTC+08:45 (Eucla, Australia)</option>
+                        <option value="+09:00">UTC+09:00 (Japan, Korea)</option>
+                        <option value="+09:30">UTC+09:30 (Adelaide, Darwin)</option>
+                        <option value="+10:00">UTC+10:00 (Sydney, Melbourne)</option>
+                        <option value="+10:30">UTC+10:30 (Lord Howe Island)</option>
+                        <option value="+11:00">UTC+11:00 (Solomon Islands)</option>
+                        <option value="+12:00">UTC+12:00 (New Zealand, Fiji)</option>
+                        <option value="+12:45">UTC+12:45 (Chatham Islands)</option>
+                        <option value="+13:00">UTC+13:00 (Tonga, Samoa)</option>
+                        <option value="+14:00">UTC+14:00 (Line Islands)</option>
+                    </select>
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-tertiary); font-size: 0.875rem;">
+                        Auto-detected: <span id="detectedTimezone" style="color: var(--primary); font-weight: 500;"></span>
+                    </small>
                 </div>
 
                 <div class="button-group">
@@ -914,8 +968,35 @@
             };
 
             const setTimeZone = () => {
-                const offset = new Date().getTimezoneOffset();
-                document.getElementById('zone').value = -Math.floor(offset / 60);
+                // Get browser's timezone offset in minutes (negative means ahead of UTC)
+                const offset = -new Date().getTimezoneOffset();
+                
+                // Convert to hours and minutes
+                const hours = Math.floor(Math.abs(offset) / 60);
+                const minutes = Math.abs(offset) % 60;
+                const sign = offset >= 0 ? '+' : '-';
+                
+                // Format as +HH:MM or -HH:MM
+                const offsetString = `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                
+                // Try to find and select the matching option
+                const dropdown = document.getElementById('timezone');
+                const matchingOption = Array.from(dropdown.options).find(opt => opt.value === offsetString);
+                
+                if (matchingOption) {
+                    dropdown.value = offsetString;
+                    document.getElementById('detectedTimezone').textContent = `UTC${offsetString}`;
+                } else {
+                    // If exact match not found, select closest hour-based match
+                    const closestOffset = `${sign}${String(hours).padStart(2, '0')}:00`;
+                    const closestOption = Array.from(dropdown.options).find(opt => opt.value === closestOffset);
+                    if (closestOption) {
+                        dropdown.value = closestOffset;
+                        document.getElementById('detectedTimezone').textContent = `UTC${offsetString} (selected closest: UTC${closestOffset})`;
+                    } else {
+                        document.getElementById('detectedTimezone').textContent = `UTC${offsetString} (please select manually)`;
+                    }
+                }
             };
 
             // ============================================================================
@@ -1035,8 +1116,15 @@
             // ============================================================================
 
             const getCurrentTimeBuffer = () => {
-                const is30MinOffset = document.getElementById('30minOffset').checked;
-                const offsetSeconds = is30MinOffset ? 30 * 60 : 0;
+                // Parse timezone value (e.g., "+05:30" -> hours: 5, minutes: 30)
+                const timezoneValue = document.getElementById('timezone').value;
+                const [sign, time] = timezoneValue.split(/(?=[+-])/);
+                const [hours, minutes] = time.substring(1).split(':').map(Number);
+                
+                // Calculate total offset in seconds
+                const offsetSeconds = (hours * 3600 + (minutes || 0) * 60) * (time[0] === '-' ? -1 : 1);
+                
+                // Get current timestamp with offset
                 const timestamp = Math.floor(Date.now() / 1000) + offsetSeconds;
 
                 const buffer = new ArrayBuffer(5);
@@ -1044,8 +1132,9 @@
 
                 view.setUint32(0, timestamp, true); // little-endian
 
-                const timezone = parseInt(document.getElementById('zone').value, 10);
-                view.setUint8(4, timezone);
+                // Convert offset to hours for the device (rounding to nearest hour)
+                const timezoneHours = Math.round(offsetSeconds / 3600);
+                view.setUint8(4, timezoneHours);
 
                 return buffer;
             };
