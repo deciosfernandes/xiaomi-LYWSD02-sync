@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Xiaomi LYWSD02 Clock Sync</title>
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0" />
+        <link
+            rel="preconnect"
+            href="https://fonts.googleapis.com" />
+        <link
+            rel="preconnect"
+            href="https://fonts.gstatic.com"
+            crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+            rel="stylesheet" />
+
+        <style>
+            :root {
+                --primary: #2563eb;
+                --primary-light: #3b82f6;
+                --primary-dark: #1e40af;
+                --secondary: #8b5cf6;
+                --surface: #ffffff;
+                --surface-elevated: #f8fafc;
+                --surface-hover: #f1f5f9;
+                --border: #e2e8f0;
+                --text-primary: #0f172a;
+                --text-secondary: #475569;
+                --text-tertiary: #94a3b8;
+                --success: #10b981;
+                --error: #ef4444;
+                --warning: #f59e0b;
+                --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+                --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+                --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+                --radius: 12px;
+                --radius-sm: 8px;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    'DM Sans',
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    'Segoe UI',
+                    sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 2rem 1rem;
+                color: var(--text-primary);
+                line-height: 1.6;
+            }
+
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                animation: fadeIn 0.6s ease-out;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .header {
+                background: var(--surface);
+                border-radius: var(--radius);
+                padding: 2rem;
+                margin-bottom: 1.5rem;
+                box-shadow: var(--shadow-lg);
+                animation: slideDown 0.6s ease-out 0.1s both;
+                text-align: center;
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                text-align: center;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header h2 {
+                font-size: 0.875rem;
+                font-weight: 400;
+                color: var(--text-secondary);
+                line-height: 1.5;
+                margin-bottom: 1.5rem;
+            }
+
+            .device-image {
+                width: 100%;
+                max-width: 280px;
+                height: 165px;
+                object-fit: cover;
+                display: block;
+                margin: 0 auto;
+            }
+
+            /* Step Indicator */
+            .step-indicator {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 2rem;
+                position: relative;
+                animation: slideUp 0.6s ease-out 0.2s both;
+            }
+
+            .step-indicator::before {
+                content: '';
+                position: absolute;
+                top: 20px;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: var(--border);
+                z-index: 0;
+            }
+
+            .step-indicator-progress {
+                position: absolute;
+                top: 20px;
+                left: 0;
+                height: 2px;
+                background: var(--primary);
+                z-index: 1;
+                transition: width 0.4s ease;
+            }
+
+            .step {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+                flex: 1;
+                position: relative;
+                z-index: 2;
+            }
+
+            .step-circle {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: var(--surface);
+                border: 3px solid var(--border);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                font-family: 'JetBrains Mono', monospace;
+                transition: all 0.3s ease;
+                color: var(--text-tertiary);
+            }
+
+            .step.active .step-circle {
+                border-color: var(--primary);
+                background: var(--primary);
+                color: white;
+                transform: scale(1.1);
+            }
+
+            .step.completed .step-circle {
+                border-color: var(--success);
+                background: var(--success);
+                color: white;
+            }
+
+            .step.completed .step-circle::before {
+                content: '✓';
+                font-size: 1.25rem;
+            }
+
+            .step-label {
+                font-size: 0.75rem;
+                font-weight: 500;
+                color: rgba(255, 255, 255, 0.6);
+                text-align: center;
+                max-width: 100px;
+            }
+
+            .step.active .step-label {
+                color: white;
+                font-weight: 600;
+            }
+
+            .step.completed .step-label {
+                color: rgba(255, 255, 255, 0.9);
+            }
+
+            /* Cards */
+            .card {
+                background: var(--surface);
+                border-radius: var(--radius);
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                box-shadow: var(--shadow-lg);
+                display: none;
+            }
+
+            .card.active {
+                display: block;
+                animation: slideUp 0.6s ease-out;
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .card-title {
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-family: 'JetBrains Mono', monospace;
+            }
+
+            .card-title::before {
+                content: '▸';
+                color: var(--primary);
+                font-weight: 700;
+            }
+
+            .card-description {
+                color: var(--text-secondary);
+                font-size: 0.9375rem;
+                margin-bottom: 1.5rem;
+                line-height: 1.6;
+            }
+
+            /* Action Cards */
+            .action-cards {
+                display: grid;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .action-card {
+                background: var(--surface-elevated);
+                border: 2px solid var(--border);
+                border-radius: var(--radius-sm);
+                padding: 1.5rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                position: relative;
+            }
+
+            .action-card:hover {
+                border-color: var(--primary);
+                background: var(--surface);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
+
+            .action-card-icon {
+                font-size: 2rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .action-card-title {
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }
+
+            .action-card-description {
+                font-size: 0.875rem;
+                color: var(--text-secondary);
+            }
+
+            /* Form Elements */
+            .form-group {
+                margin-bottom: 1.25rem;
+            }
+
+            .form-group:last-of-type {
+                margin-bottom: 0;
+            }
+
+            label {
+                display: block;
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: var(--text-secondary);
+                margin-bottom: 0.5rem;
+            }
+
+            input[type='number'] {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border: 2px solid var(--border);
+                border-radius: var(--radius-sm);
+                font-size: 1rem;
+                font-family: 'JetBrains Mono', monospace;
+                transition: all 0.2s ease;
+                background: var(--surface-elevated);
+            }
+
+            input[type='number']:hover {
+                border-color: var(--primary-light);
+                background: var(--surface);
+            }
+
+            input[type='number']:focus {
+                outline: none;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            }
+
+            .checkbox-group {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.75rem;
+                background: var(--surface-elevated);
+                border-radius: var(--radius-sm);
+                transition: all 0.2s ease;
+            }
+
+            .checkbox-group:hover {
+                background: var(--surface-hover);
+            }
+
+            input[type='checkbox'] {
+                width: 20px;
+                height: 20px;
+                cursor: pointer;
+                accent-color: var(--primary);
+            }
+
+            .checkbox-group label {
+                margin: 0;
+                cursor: pointer;
+                flex: 1;
+            }
+
+            .radio-group {
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 1.25rem;
+            }
+
+            .radio-option {
+                flex: 1;
+                position: relative;
+            }
+
+            .radio-option input[type='radio'] {
+                position: absolute;
+                opacity: 0;
+                cursor: pointer;
+            }
+
+            .radio-label {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.875rem 1.5rem;
+                background: var(--surface-elevated);
+                border: 2px solid var(--border);
+                border-radius: var(--radius-sm);
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 1.125rem;
+            }
+
+            .radio-option input[type='radio']:checked + .radio-label {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
+
+            .radio-option:hover .radio-label {
+                border-color: var(--primary-light);
+                background: var(--surface-hover);
+            }
+
+            .radio-option input[type='radio']:checked + .radio-label:hover {
+                background: var(--primary-dark);
+            }
+
+            /* Buttons */
+            button {
+                width: 100%;
+                padding: 1rem 1.5rem;
+                background: var(--primary);
+                color: white;
+                border: none;
+                border-radius: var(--radius-sm);
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                box-shadow: var(--shadow-sm);
+                font-family: 'DM Sans', sans-serif;
+                position: relative;
+                overflow: hidden;
+            }
+
+            button::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.2);
+                transform: translate(-50%, -50%);
+                transition:
+                    width 0.6s ease,
+                    height 0.6s ease;
+            }
+
+            button:hover::before {
+                width: 300px;
+                height: 300px;
+            }
+
+            button:hover {
+                background: var(--primary-dark);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-md);
+            }
+
+            button:active {
+                transform: translateY(0);
+                box-shadow: var(--shadow-sm);
+            }
+
+            button:disabled {
+                background: var(--border);
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            button:disabled:hover {
+                background: var(--border);
+                transform: none;
+            }
+
+            .button-secondary {
+                background: var(--surface-elevated);
+                color: var(--text-primary);
+                border: 2px solid var(--border);
+            }
+
+            .button-secondary:hover {
+                background: var(--surface-hover);
+                border-color: var(--primary);
+            }
+
+            .button-group {
+                display: flex;
+                gap: 1rem;
+                margin-top: 1.5rem;
+            }
+
+            .button-group button {
+                flex: 1;
+            }
+
+            /* Status Badge */
+            .status-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem;
+                background: var(--surface-elevated);
+                border-radius: var(--radius-sm);
+                font-size: 0.875rem;
+                font-weight: 500;
+                margin-bottom: 1rem;
+            }
+
+            .status-badge.connected {
+                background: rgba(16, 185, 129, 0.1);
+                color: var(--success);
+            }
+
+            .status-badge.disconnected {
+                background: rgba(148, 163, 184, 0.1);
+                color: var(--text-tertiary);
+            }
+
+            /* Console */
+            #console {
+                background: var(--text-primary);
+                color: #10b981;
+                padding: 1rem;
+                border-radius: var(--radius-sm);
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.875rem;
+                min-height: 80px;
+                max-height: 200px;
+                overflow-y: auto;
+                line-height: 1.6;
+                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
+
+            #console:empty::before {
+                content: 'Ready to connect...';
+                color: var(--text-tertiary);
+                font-style: italic;
+            }
+
+            .console-message {
+                margin-bottom: 0.5rem;
+                animation: messageAppear 0.3s ease-out;
+            }
+
+            @keyframes messageAppear {
+                from {
+                    opacity: 0;
+                    transform: translateX(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            .console-message.error {
+                color: var(--error);
+            }
+
+            .console-message.success {
+                color: var(--success);
+            }
+
+            .console-message.info {
+                color: #3b82f6;
+            }
+
+            /* Console Card */
+            .console-card {
+                background: var(--surface);
+                border-radius: var(--radius);
+                padding: 1.5rem;
+                box-shadow: var(--shadow-lg);
+                animation: slideUp 0.6s ease-out 0.4s both;
+            }
+
+            /* Footer */
+            .footer {
+                background: var(--surface);
+                border-radius: var(--radius);
+                padding: 1.5rem;
+                box-shadow: var(--shadow-lg);
+                animation: slideUp 0.6s ease-out 0.5s both;
+                margin-top: 1.5rem;
+            }
+
+            .footer-section {
+                margin-bottom: 1.5rem;
+            }
+
+            .footer-section:last-child {
+                margin-bottom: 0;
+            }
+
+            .footer-title {
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .footer ul {
+                list-style: none;
+            }
+
+            .footer li {
+                margin-bottom: 0.5rem;
+                font-size: 0.875rem;
+            }
+
+            .footer a {
+                color: var(--primary);
+                text-decoration: none;
+                transition: color 0.2s ease;
+                font-weight: 500;
+            }
+
+            .footer a:hover {
+                color: var(--primary-dark);
+                text-decoration: underline;
+            }
+
+            .debug-link {
+                display: inline-block;
+                margin-top: 1rem;
+                padding: 0.5rem 1rem;
+                background: var(--surface-elevated);
+                border-radius: var(--radius-sm);
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-size: 0.8125rem;
+                font-family: 'JetBrains Mono', monospace;
+                transition: all 0.2s ease;
+            }
+
+            .debug-link:hover {
+                background: var(--surface-hover);
+                color: var(--text-primary);
+                transform: translateX(4px);
+            }
+
+            @media (max-width: 640px) {
+                body {
+                    padding: 1rem 0.75rem;
+                }
+
+                .header {
+                    padding: 1.5rem;
+                }
+
+                .header h1 {
+                    font-size: 1.5rem;
+                }
+
+                .card {
+                    padding: 1.25rem;
+                }
+
+                .radio-group {
+                    flex-direction: column;
+                    gap: 0.75rem;
+                }
+
+                .step-label {
+                    font-size: 0.6875rem;
+                    max-width: 80px;
+                }
+
+                .button-group {
+                    flex-direction: column;
+                }
+            }
+
+            /* Scrollbar styling */
+            #console::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            #console::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 4px;
+            }
+
+            #console::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 4px;
+            }
+
+            #console::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.3);
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Xiaomi LYWSD02 Clock Sync</h1>
+                <h2>Xiaomi Mijia BT4.0 Wireless Smart Electric Digital Clock<br />Indoor & Outdoor Hygrometer Thermometer</h2>
+                <img
+                    src="https://imgaz3.staticbg.com/thumb/large/oaupload/banggood/images/74/DF/f05ddb02-4334-48a1-8785-39c4a5d9d9c1.jpg.webp"
+                    alt="LYWSD02 Device"
+                    class="device-image" />
+            </div>
+
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div
+                    class="step-indicator-progress"
+                    id="stepProgress"></div>
+                <div
+                    class="step"
+                    id="step1Indicator">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Connect Device</div>
+                </div>
+                <div
+                    class="step"
+                    id="step2Indicator">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Choose Action</div>
+                </div>
+                <div
+                    class="step"
+                    id="step3Indicator">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Complete</div>
+                </div>
+            </div>
+
+            <!-- Step 1: Connect -->
+            <div
+                class="card active"
+                id="step1">
+                <div class="card-title">Step 1: Connect to Device</div>
+                <div class="card-description">
+                    Click the button below to initiate Bluetooth connection with your LYWSD02 device. Make sure Bluetooth is enabled and the
+                    device is nearby.
+                </div>
+
+                <div
+                    class="status-badge disconnected"
+                    id="connectionStatus">
+                    <span>●</span> Not Connected
+                </div>
+
+                <button onclick="connectDevice()">Connect via Bluetooth</button>
+            </div>
+
+            <!-- Step 2: Choose Action -->
+            <div
+                class="card"
+                id="step2">
+                <div class="card-title">Step 2: Choose Action</div>
+                <div class="card-description">Select what you'd like to do with your device:</div>
+
+                <div class="status-badge connected"><span>●</span> Device Connected</div>
+
+                <div class="action-cards">
+                    <div
+                        class="action-card"
+                        onclick="selectAction('time')">
+                        <div class="action-card-icon">🕐</div>
+                        <div class="action-card-title">Synchronize Time</div>
+                        <div class="action-card-description">Update the device clock with your current time and timezone</div>
+                    </div>
+
+                    <div
+                        class="action-card"
+                        onclick="selectAction('unit')">
+                        <div class="action-card-icon">🌡️</div>
+                        <div class="action-card-title">Update Temperature Unit</div>
+                        <div class="action-card-description">Switch between Celsius and Fahrenheit display</div>
+                    </div>
+                </div>
+
+                <button
+                    class="button-secondary"
+                    onclick="resetToStart()">
+                    Disconnect & Start Over
+                </button>
+            </div>
+
+            <!-- Step 3a: Time Sync -->
+            <div
+                class="card"
+                id="step3Time">
+                <div class="card-title">Synchronize Time</div>
+
+                <div class="form-group">
+                    <label for="zone">Time Zone Offset</label>
+                    <input
+                        type="number"
+                        id="zone"
+                        name="zone"
+                        min="-12"
+                        max="14"
+                        value="0" />
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input
+                            type="checkbox"
+                            id="30minOffset"
+                            name="30minOffset" />
+                        <label for="30minOffset">Add 30 minute offset</label>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button
+                        class="button-secondary"
+                        onclick="goToStep2()">
+                        ← Back
+                    </button>
+                    <button onclick="updateTime()">Sync Time Now</button>
+                </div>
+            </div>
+
+            <!-- Step 3b: Unit Update -->
+            <div
+                class="card"
+                id="step3Unit">
+                <div class="card-title">Update Temperature Unit</div>
+
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input
+                            type="radio"
+                            id="c"
+                            name="unit"
+                            value="0"
+                            checked />
+                        <label
+                            for="c"
+                            class="radio-label"
+                            >°C</label
+                        >
+                    </div>
+                    <div class="radio-option">
+                        <input
+                            type="radio"
+                            id="f"
+                            name="unit"
+                            value="1" />
+                        <label
+                            for="f"
+                            class="radio-label"
+                            >°F</label
+                        >
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button
+                        class="button-secondary"
+                        onclick="goToStep2()">
+                        ← Back
+                    </button>
+                    <button onclick="updateUnit()">Update Unit</button>
+                </div>
+            </div>
+
+            <!-- Console -->
+            <div class="console-card">
+                <div class="card-title">Activity Log</div>
+                <div id="console"></div>
+            </div>
+        </div>
+
+        <script>
+            // ============================================================================
+            // CONSTANTS & STATE
+            // ============================================================================
+
+            const BLUETOOTH_CONFIG = {
+                TIME_SERVICE: 'ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6',
+                TIME_CHARACTERISTIC: 'ebe0ccb7-7a0a-4b0c-8a1a-6ff2997da3a6',
+                UNIT_CHARACTERISTIC: 'ebe0ccbe-7a0a-4b0c-8a1a-6ff2997da3a6',
+            };
+
+            const MAX_CONSOLE_MESSAGES = 20;
+
+            const state = {
+                currentStep: 1,
+                deviceConnected: false,
+                connectedDevice: null,
+                connectedServer: null,
+                consoleMessages: [],
+            };
+
+            // ============================================================================
+            // INITIALIZATION
+            // ============================================================================
+
+            const init = () => {
+                setTimeZone();
+                updateStepIndicator();
+            };
+
+            const setTimeZone = () => {
+                const offset = new Date().getTimezoneOffset();
+                document.getElementById('zone').value = -Math.floor(offset / 60);
+            };
+
+            // ============================================================================
+            // STEP NAVIGATION
+            // ============================================================================
+
+            const updateStepIndicator = () => {
+                const progressPercentages = { 1: '0%', 2: '50%', 3: '100%' };
+                document.getElementById('stepProgress').style.width = progressPercentages[state.currentStep] || '0%';
+
+                [1, 2, 3].forEach((step) => {
+                    const indicator = document.getElementById(`step${step}Indicator`);
+                    indicator.classList.remove('active', 'completed');
+
+                    if (step < state.currentStep) {
+                        indicator.classList.add('completed');
+                    } else if (step === state.currentStep) {
+                        indicator.classList.add('active');
+                    }
+                });
+            };
+
+            const showCard = (cardId) => {
+                document.querySelectorAll('.card').forEach((card) => card.classList.remove('active'));
+
+                const targetCard = document.getElementById(cardId);
+                if (targetCard) {
+                    targetCard.classList.add('active');
+                }
+            };
+
+            const goToStep2 = () => {
+                state.currentStep = 2;
+                updateStepIndicator();
+                showCard('step2');
+            };
+
+            const selectAction = (action) => {
+                state.currentStep = 3;
+                updateStepIndicator();
+                showCard(action === 'time' ? 'step3Time' : 'step3Unit');
+            };
+
+            const resetToStart = () => {
+                state.currentStep = 1;
+                state.deviceConnected = false;
+                state.connectedDevice = null;
+                state.connectedServer = null;
+
+                updateStepIndicator();
+                showCard('step1');
+                updateConnectionStatus(false);
+
+                log('Disconnected - Ready to start over', 'info');
+            };
+
+            const updateConnectionStatus = (connected) => {
+                const status = document.getElementById('connectionStatus');
+                status.classList.toggle('connected', connected);
+                status.classList.toggle('disconnected', !connected);
+                status.innerHTML = connected ? '<span>●</span> Device Connected' : '<span>●</span> Not Connected';
+            };
+
+            // ============================================================================
+            // BLUETOOTH CONNECTION
+            // ============================================================================
+
+            const connectDevice = async () => {
+                if (!navigator.bluetooth) {
+                    log('✗ Bluetooth API not supported in this browser', 'error');
+                    return;
+                }
+
+                try {
+                    log('Initiating Bluetooth connection...', 'info');
+
+                    const device = await navigator.bluetooth.requestDevice({
+                        acceptAllDevices: true,
+                        optionalServices: [BLUETOOTH_CONFIG.TIME_SERVICE],
+                    });
+
+                    log('Device selected, connecting...', 'info');
+                    state.connectedDevice = device;
+
+                    const server = await device.gatt.connect();
+                    state.connectedServer = server;
+                    state.deviceConnected = true;
+
+                    log('✓ Device connected successfully!', 'success');
+                    updateConnectionStatus(true);
+
+                    // Advance to step 2
+                    state.currentStep = 2;
+                    updateStepIndicator();
+                    showCard('step2');
+                } catch (error) {
+                    log(`✗ Connection failed: ${error.message || error}`, 'error');
+                    state.deviceConnected = false;
+                    updateConnectionStatus(false);
+                }
+            };
+
+            const getCharacteristic = async (serviceUuid, characteristicUuid) => {
+                if (!state.connectedServer) {
+                    throw new Error('No active connection');
+                }
+
+                log('Getting service...', 'info');
+                const service = await state.connectedServer.getPrimaryService(serviceUuid);
+
+                log('Getting characteristic...', 'info');
+                return await service.getCharacteristic(characteristicUuid);
+            };
+
+            // ============================================================================
+            // TIME SYNCHRONIZATION
+            // ============================================================================
+
+            const getCurrentTimeBuffer = () => {
+                const is30MinOffset = document.getElementById('30minOffset').checked;
+                const offsetSeconds = is30MinOffset ? 30 * 60 : 0;
+                const timestamp = Math.floor(Date.now() / 1000) + offsetSeconds;
+
+                const buffer = new ArrayBuffer(5);
+                const view = new DataView(buffer);
+
+                view.setUint32(0, timestamp, true); // little-endian
+
+                const timezone = parseInt(document.getElementById('zone').value, 10);
+                view.setUint8(4, timezone);
+
+                return buffer;
+            };
+
+            const updateTime = async () => {
+                if (!state.deviceConnected) {
+                    log('✗ Please connect to device first', 'error');
+                    return;
+                }
+
+                try {
+                    const characteristic = await getCharacteristic(BLUETOOTH_CONFIG.TIME_SERVICE, BLUETOOTH_CONFIG.TIME_CHARACTERISTIC);
+
+                    log('Writing time value...', 'info');
+                    await characteristic.writeValue(getCurrentTimeBuffer());
+
+                    log('✓ Time synchronized successfully!', 'success');
+                } catch (error) {
+                    log(`✗ Error: ${error.message || error}`, 'error');
+                }
+            };
+
+            // ============================================================================
+            // UNIT UPDATE
+            // ============================================================================
+
+            const getUnitName = (value) => (value === 0 ? 'Celsius' : 'Fahrenheit');
+
+            const createUnitBuffer = (unitValue) => {
+                const buffer = new ArrayBuffer(1);
+                new DataView(buffer).setUint8(0, unitValue);
+                return buffer;
+            };
+
+            const updateUnit = async () => {
+                if (!state.deviceConnected) {
+                    log('✗ Please connect to device first', 'error');
+                    return;
+                }
+
+                try {
+                    const unitValue = parseInt(document.querySelector('input[name="unit"]:checked').value, 10);
+                    const unitName = getUnitName(unitValue);
+
+                    const characteristic = await getCharacteristic(BLUETOOTH_CONFIG.TIME_SERVICE, BLUETOOTH_CONFIG.UNIT_CHARACTERISTIC);
+
+                    // Read current value
+                    const currentValue = await characteristic.readValue();
+                    const oldValue = currentValue.getUint8(0);
+                    const oldName = getUnitName(oldValue);
+
+                    log(`Updating unit (${oldName} → ${unitName})...`, 'info');
+
+                    // Write new value
+                    await characteristic.writeValue(createUnitBuffer(unitValue));
+
+                    log('✓ Unit updated successfully!', 'success');
+                } catch (error) {
+                    log(`✗ Error: ${error.message || error}`, 'error');
+                }
+            };
+
+            // ============================================================================
+            // CONSOLE LOGGING
+            // ============================================================================
+
+            const log = (message, type = 'info') => {
+                console.log(message);
+
+                state.consoleMessages.push({
+                    text: message,
+                    type: type,
+                    time: new Date(),
+                });
+
+                // Keep only recent messages
+                if (state.consoleMessages.length > MAX_CONSOLE_MESSAGES) {
+                    state.consoleMessages.shift();
+                }
+
+                renderConsole();
+            };
+
+            const renderConsole = () => {
+                const element = document.getElementById('console');
+
+                element.innerHTML = state.consoleMessages
+                    .map((msg) => {
+                        const time = msg.time.toLocaleTimeString();
+                        return `<div class="console-message ${msg.type}">[${time}] ${msg.text}</div>`;
+                    })
+                    .join('');
+
+                // Auto-scroll to bottom
+                element.scrollTop = element.scrollHeight;
+            };
+
+            // ============================================================================
+            // START APPLICATION
+            // ============================================================================
+
+            init();
+        </script>
+    </body>
+</html>
