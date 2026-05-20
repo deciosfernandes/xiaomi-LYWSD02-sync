@@ -1,0 +1,1 @@
+# xiaomi-LYWSD02-sync
