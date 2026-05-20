@@ -93,7 +93,11 @@ export default function XiaomiClockSync() {
             log('Initiating Bluetooth connection...', 'info');
 
             const device = await navigator.bluetooth.requestDevice({
-                acceptAllDevices: true,
+                filters: [
+                    { services: [BLUETOOTH_CONFIG.TIME_SERVICE] },
+                    { namePrefix: 'LYWSD' },
+                    { namePrefix: 'MiTemp' },
+                ],
                 optionalServices: [BLUETOOTH_CONFIG.TIME_SERVICE],
             });
 
