@@ -1,61 +1,75 @@
-# xiaomi-LYWSD02-sync
+# React + TypeScript + Vite
 
-A browser-based tool to synchronize the clock and configure the temperature unit of the **Xiaomi Mijia LYWSD02** (BT 4.0 Wireless Smart Electric Digital Clock / Indoor & Outdoor Hygrometer Thermometer) via the Web Bluetooth API — no app or installation required.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
----
+Currently, two official plugins are available:
 
-## Features
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-- **Synchronize Time** — pushes the current time and your timezone offset directly to the device clock. An optional 30-minute offset is available for half-hour timezones.
-- **Update Temperature Unit** — switch the display between °C (Celsius) and °F (Fahrenheit).
-- **Activity Log** — an in-page console shows timestamped status messages for every operation.
+## React Compiler
 
----
+The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
 
-## Requirements
+Note: This will impact Vite dev & build performances.
 
-| Requirement | Detail |
-|---|---|
-| Browser | Google Chrome / Microsoft Edge (or any Chromium-based browser) — Web Bluetooth API is **not** supported in Firefox or Safari |
-| Bluetooth | The host device must have Bluetooth enabled |
-| Device | Xiaomi LYWSD02 clock nearby and powered on |
+## Expanding the ESLint configuration
 
----
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-## Usage
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-Open `index.html` in a supported browser (or visit the hosted page). The wizard walks you through three steps:
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-1. **Connect Device** — click **Connect via Bluetooth**. A browser picker lists nearby Bluetooth devices; select your LYWSD02.
-2. **Choose Action** — after a successful connection choose one of:
-   - 🕐 **Synchronize Time** — the timezone offset is pre-filled from your browser locale. Adjust it if needed (range −12 to +14) and tick *Add 30 minute offset* for half-hour zones, then click **Sync Time Now**.
-   - 🌡️ **Update Temperature Unit** — select °C or °F and click **Update Unit**.
-3. **Done** — the Activity Log confirms success or reports any error.
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
 
-Click **Disconnect & Start Over** at any time to return to Step 1.
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
----
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-## Technical Details
-
-The app communicates over BLE using the following service and characteristics:
-
-| Name | UUID |
-|---|---|
-| Time Service | `ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6` |
-| Time Characteristic | `ebe0ccb7-7a0a-4b0c-8a1a-6ff2997da3a6` |
-| Unit Characteristic | `ebe0ccbe-7a0a-4b0c-8a1a-6ff2997da3a6` |
-
-### Time write payload (5 bytes, little-endian)
-
-| Bytes | Type | Description |
-|---|---|---|
-| 0–3 | `uint32` LE | Unix timestamp (seconds since epoch), with optional +1800 s offset |
-| 4 | `uint8` | Timezone offset in whole hours (e.g. `5` for UTC+5) |
-
-### Unit write payload (1 byte)
-
-| Value | Meaning |
-|---|---|
-| `0x00` | Celsius |
-| `0x01` | Fahrenheit |
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
