@@ -832,44 +832,7 @@
                 <div class="form-group">
                     <label for="timezone">Time Zone</label>
                     <select id="timezone" name="timezone">
-                        <option value="-12:00">UTC-12:00 (Baker Island)</option>
-                        <option value="-11:00">UTC-11:00 (American Samoa)</option>
-                        <option value="-10:00">UTC-10:00 (Hawaii)</option>
-                        <option value="-09:30">UTC-09:30 (Marquesas Islands)</option>
-                        <option value="-09:00">UTC-09:00 (Alaska)</option>
-                        <option value="-08:00">UTC-08:00 (Pacific Time)</option>
-                        <option value="-07:00">UTC-07:00 (Mountain Time)</option>
-                        <option value="-06:00">UTC-06:00 (Central Time)</option>
-                        <option value="-05:00">UTC-05:00 (Eastern Time)</option>
-                        <option value="-04:00">UTC-04:00 (Atlantic Time)</option>
-                        <option value="-03:30">UTC-03:30 (Newfoundland)</option>
-                        <option value="-03:00">UTC-03:00 (Brazil, Argentina)</option>
-                        <option value="-02:00">UTC-02:00 (South Georgia)</option>
-                        <option value="-01:00">UTC-01:00 (Azores)</option>
-                        <option value="+00:00" selected>UTC+00:00 (London, Lisbon)</option>
-                        <option value="+01:00">UTC+01:00 (Berlin, Paris, Rome)</option>
-                        <option value="+02:00">UTC+02:00 (Athens, Cairo, Helsinki)</option>
-                        <option value="+03:00">UTC+03:00 (Moscow, Istanbul)</option>
-                        <option value="+03:30">UTC+03:30 (Tehran)</option>
-                        <option value="+04:00">UTC+04:00 (Dubai, Baku)</option>
-                        <option value="+04:30">UTC+04:30 (Kabul)</option>
-                        <option value="+05:00">UTC+05:00 (Pakistan, Uzbekistan)</option>
-                        <option value="+05:30">UTC+05:30 (India, Sri Lanka)</option>
-                        <option value="+05:45">UTC+05:45 (Nepal)</option>
-                        <option value="+06:00">UTC+06:00 (Bangladesh, Kazakhstan)</option>
-                        <option value="+06:30">UTC+06:30 (Myanmar, Cocos Islands)</option>
-                        <option value="+07:00">UTC+07:00 (Bangkok, Jakarta)</option>
-                        <option value="+08:00">UTC+08:00 (China, Singapore, Perth)</option>
-                        <option value="+08:45">UTC+08:45 (Eucla, Australia)</option>
-                        <option value="+09:00">UTC+09:00 (Japan, Korea)</option>
-                        <option value="+09:30">UTC+09:30 (Adelaide, Darwin)</option>
-                        <option value="+10:00">UTC+10:00 (Sydney, Melbourne)</option>
-                        <option value="+10:30">UTC+10:30 (Lord Howe Island)</option>
-                        <option value="+11:00">UTC+11:00 (Solomon Islands)</option>
-                        <option value="+12:00">UTC+12:00 (New Zealand, Fiji)</option>
-                        <option value="+12:45">UTC+12:45 (Chatham Islands)</option>
-                        <option value="+13:00">UTC+13:00 (Tonga, Samoa)</option>
-                        <option value="+14:00">UTC+14:00 (Line Islands)</option>
+                        <option value="">Loading timezones...</option>
                     </select>
                     <small style="display: block; margin-top: 0.5rem; color: var(--text-tertiary); font-size: 0.875rem;">
                         Auto-detected: <span id="detectedTimezone" style="color: var(--primary); font-weight: 500;"></span>
@@ -968,34 +931,86 @@
             };
 
             const setTimeZone = () => {
-                // Get browser's timezone offset in minutes (negative means ahead of UTC)
-                const offset = -new Date().getTimezoneOffset();
-                
-                // Convert to hours and minutes
-                const hours = Math.floor(Math.abs(offset) / 60);
-                const minutes = Math.abs(offset) % 60;
-                const sign = offset >= 0 ? '+' : '-';
-                
-                // Format as +HH:MM or -HH:MM
-                const offsetString = `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-                
-                // Try to find and select the matching option
-                const dropdown = document.getElementById('timezone');
-                const matchingOption = Array.from(dropdown.options).find(opt => opt.value === offsetString);
-                
-                if (matchingOption) {
-                    dropdown.value = offsetString;
-                    document.getElementById('detectedTimezone').textContent = `UTC${offsetString}`;
-                } else {
-                    // If exact match not found, select closest hour-based match
-                    const closestOffset = `${sign}${String(hours).padStart(2, '0')}:00`;
-                    const closestOption = Array.from(dropdown.options).find(opt => opt.value === closestOffset);
-                    if (closestOption) {
-                        dropdown.value = closestOffset;
-                        document.getElementById('detectedTimezone').textContent = `UTC${offsetString} (selected closest: UTC${closestOffset})`;
+                try {
+                    // Get user's current timezone
+                    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    
+                    // Get all supported timezones
+                    const timeZones = Intl.supportedValuesOf('timeZone');
+                    
+                    // Create timezone data with offsets
+                    const now = new Date();
+                    const timeZoneData = timeZones.map(tz => {
+                        // Get the offset for this timezone
+                        const formatter = new Intl.DateTimeFormat('en-US', {
+                            timeZone: tz,
+                            timeZoneName: 'shortOffset'
+                        });
+                        
+                        const parts = formatter.formatToParts(now);
+                        const offsetPart = parts.find(part => part.type === 'timeZoneName');
+                        const offset = offsetPart ? offsetPart.value : 'UTC';
+                        
+                        // Calculate numeric offset for sorting
+                        let numericOffset = 0;
+                        if (offset !== 'UTC') {
+                            const match = offset.match(/GMT([+-])(\d{1,2}):?(\d{2})?/);
+                            if (match) {
+                                const sign = match[1] === '+' ? 1 : -1;
+                                const hours = parseInt(match[2], 10);
+                                const minutes = match[3] ? parseInt(match[3], 10) : 0;
+                                numericOffset = sign * (hours * 60 + minutes);
+                            }
+                        }
+                        
+                        return {
+                            name: tz,
+                            offset: offset,
+                            numericOffset: numericOffset,
+                            displayName: `${offset.replace('GMT', 'UTC')} - ${tz.replace(/_/g, ' ')}`
+                        };
+                    });
+                    
+                    // Sort by offset, then by name
+                    timeZoneData.sort((a, b) => {
+                        if (a.numericOffset !== b.numericOffset) {
+                            return a.numericOffset - b.numericOffset;
+                        }
+                        return a.name.localeCompare(b.name);
+                    });
+                    
+                    // Populate dropdown
+                    const dropdown = document.getElementById('timezone');
+                    dropdown.innerHTML = '';
+                    
+                    timeZoneData.forEach(tz => {
+                        const option = document.createElement('option');
+                        option.value = tz.name;
+                        option.textContent = tz.displayName;
+                        dropdown.appendChild(option);
+                    });
+                    
+                    // Select user's timezone
+                    dropdown.value = userTimeZone;
+                    
+                    // Display detected timezone
+                    const userTzData = timeZoneData.find(tz => tz.name === userTimeZone);
+                    if (userTzData) {
+                        document.getElementById('detectedTimezone').textContent = 
+                            `${userTzData.offset.replace('GMT', 'UTC')} (${userTimeZone})`;
                     } else {
-                        document.getElementById('detectedTimezone').textContent = `UTC${offsetString} (please select manually)`;
+                        document.getElementById('detectedTimezone').textContent = userTimeZone;
                     }
+                    
+                    log(`Timezone auto-detected: ${userTimeZone}`, 'info');
+                } catch (error) {
+                    console.error('Error setting timezone:', error);
+                    log('Could not auto-detect timezone', 'error');
+                    
+                    // Fallback to simple UTC option
+                    const dropdown = document.getElementById('timezone');
+                    dropdown.innerHTML = '<option value="UTC">UTC+00:00 - UTC</option>';
+                    document.getElementById('detectedTimezone').textContent = 'Auto-detection failed';
                 }
             };
 
@@ -1116,13 +1131,31 @@
             // ============================================================================
 
             const getCurrentTimeBuffer = () => {
-                // Parse timezone value (e.g., "+05:30" -> hours: 5, minutes: 30)
-                const timezoneValue = document.getElementById('timezone').value;
-                const [sign, time] = timezoneValue.split(/(?=[+-])/);
-                const [hours, minutes] = time.substring(1).split(':').map(Number);
+                // Get selected timezone (IANA name like "Europe/Lisbon")
+                const timeZoneName = document.getElementById('timezone').value;
                 
-                // Calculate total offset in seconds
-                const offsetSeconds = (hours * 3600 + (minutes || 0) * 60) * (time[0] === '-' ? -1 : 1);
+                // Calculate the offset for the selected timezone
+                const now = new Date();
+                const formatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: timeZoneName,
+                    timeZoneName: 'shortOffset'
+                });
+                
+                const parts = formatter.formatToParts(now);
+                const offsetPart = parts.find(part => part.type === 'timeZoneName');
+                const offsetString = offsetPart ? offsetPart.value : 'GMT';
+                
+                // Parse offset (e.g., "GMT+5:30" or "GMT-8")
+                let offsetSeconds = 0;
+                if (offsetString !== 'GMT') {
+                    const match = offsetString.match(/GMT([+-])(\d{1,2}):?(\d{2})?/);
+                    if (match) {
+                        const sign = match[1] === '+' ? 1 : -1;
+                        const hours = parseInt(match[2], 10);
+                        const minutes = match[3] ? parseInt(match[3], 10) : 0;
+                        offsetSeconds = sign * (hours * 3600 + minutes * 60);
+                    }
+                }
                 
                 // Get current timestamp with offset
                 const timestamp = Math.floor(Date.now() / 1000) + offsetSeconds;
