@@ -2,6 +2,8 @@
 
 Web app to sync time and temperature unit to a **Xiaomi Mijia LYWSD02** Bluetooth clock directly from the browser — no app, no drivers.
 
+**Live app:** https://deciosfernandes.github.io/xiaomi-LYWSD02-sync/
+
 ## Features
 
 - Connect to LYWSD02 via Web Bluetooth
